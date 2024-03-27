@@ -1,0 +1,4 @@
+raw-file=linearaneurism.raw
+resolution=256x256x256
+sample-type=unsigned short
+ratio=1:1:1
