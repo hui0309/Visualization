@@ -23,7 +23,7 @@ SHADER *MyShader;
 CAMERA *MyCamera;
 ISO *MyIso;
 
-vector<string> dataName = {"mrt16_angio2.raw", "bonsai.raw"};
+vector<string> dataName = {"mrt16_angio2.raw", "Carp.raw"};
 // control what isosurface should be draw
 const glm::vec3 gridcolor[4] = {
     glm::vec3(171.0f / 255.0f, 88.0f / 255.0f, 173.0f / 255.0f),

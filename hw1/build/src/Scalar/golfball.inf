@@ -1,0 +1,3 @@
+raw-file=golfball.raw
+resolution=256x256x256
+sample-type=unsigned char
