@@ -9,10 +9,13 @@ using namespace std;
 class TEX {
 private:
     GLuint texID[2];
-    void creVOLE(const vector<vector<vector<double>>>&);
+    void creVOLE(const vector<vector<vector<float>>>&);
     void creTRAN();
+    
 public:
-    TEX(vector<vector<vector<double>>>);
-    void loadTEX(const vector<vector<vector<double>>>&);
+    TEX(vector<vector<vector<float>>>&);
+    ~TEX();
+
+    void loadTEX(const vector<vector<vector<float>>>&);
     void use()const;
 };
