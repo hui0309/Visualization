@@ -7,16 +7,20 @@
 
 class CAMERA {
 public:
-	CAMERA(const glm::vec3& _pos, const glm::vec3& _up, const glm::vec3& _view):
-        pos(_pos), up(_up), view(_view), zoom(45.0f), zNear(0.1f), zFar(10000.0f){};
+	CAMERA(const glm::vec3& _pos, const glm::vec3& _view, const glm::vec3& _up):
+        pos(_pos), up(_up), view(_view), zoom(45.0f), zNear(0.1f), zFar(1000.0f){};
     glm::mat3 getView()const{
         return glm::lookAt(pos, view, up);
     }
     glm::mat3 getProjection(const unsigned int& SCR_WIDTH, const unsigned int& SCR_HEIGHT)const{
-        return glm::perspective(glm::radians(zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, zNear, zFar);
+        return glm::ortho(0.0f, (float)SCR_WIDTH, (float)SCR_HEIGHT, 0.0f, -1.0f, 1.0f);
+        //return glm::perspective(glm::radians(zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, zNear, zFar);
     }
     glm::vec3 getPosition()const{
         return pos;
+    }
+    glm::vec3 getSeeDir()const{
+        return view - pos;
     }
 	// void update_pos(const float&, const float&, const float&, const float&);
 	// void update_view(const float&, const float&, const float&, const float&);
