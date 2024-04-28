@@ -10,12 +10,59 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
 // settings
-unsigned int SCR_WIDTH = 800;
+unsigned int SCR_WIDTH = 600;
 unsigned int SCR_HEIGHT = 600;
 
 SHADER *MyShader;
 CAMERA * MyCamera;
 OBJ *MyOBJ;
+
+void draw_iso_surface_gui(){
+    {  
+        ImGui::SetNextWindowBgAlpha(0.5f);
+        ImGui::Begin("Adgust");
+
+        ImGui::Text("Reveal ISO SURFACE:");
+        // ImGui::Checkbox("value: -5", &openSurf[0]); ImGui::SameLine();
+        // ImGui::Checkbox("value: 20", &openSurf[1]);
+        // ImGui::Checkbox("value: 40", &openSurf[2]); ImGui::SameLine();
+        // ImGui::Checkbox("value: 70", &openSurf[3]);
+
+        ImGui::Text("Rotate Direction:");
+        // ImGui::RadioButton("X", &selectRot, 0); ImGui::SameLine();
+        // ImGui::RadioButton("Y", &selectRot, 1); ImGui::SameLine();
+        // ImGui::RadioButton("Z", &selectRot, 2); ImGui::SameLine();
+        // ImGui::RadioButton("Stop", &selectRot, 3);   
+
+        ImGui::Text("Cross Section:");
+        // ImGui::SliderFloat("##coff_x", &coff.x, -1.0f, 1.0f); ImGui::SameLine();
+        // ImGui::Text("X + "); 
+        // ImGui::SliderFloat("##coff_Y", &coff.y, -1.0f, 1.0f); ImGui::SameLine();
+        // ImGui::Text("Y + "); 
+        // ImGui::SliderFloat("##coff_Z", &coff.z, -1.0f, 1.0f); ImGui::SameLine();
+        // ImGui::Text("Z = "); 
+        // ImGui::SliderFloat("##coff_W", &coff.w, -256.0f, 256.0f);
+
+        ImGui::Text("Open RawData");
+        ImGui::PushButtonRepeat(true);
+        // if (ImGui::ArrowButton("##left", ImGuiDir_Left))
+        //     dataInd = (dataInd + dataName.size() - 1) % dataName.size();
+        // ImGui::SameLine(); ImGui::Text("%s", dataName[dataInd].c_str()); ImGui::SameLine();
+        // if (ImGui::ArrowButton("##right", ImGuiDir_Right))
+        //     dataInd = (dataInd + 1) % dataName.size();
+        ImGui::PopButtonRepeat();
+
+        ImGui::End();
+    }
+    {
+        ImGui::SetNextWindowBgAlpha(0.5f);
+        ImGui::Begin("Histogram");
+
+        // ImGui::PlotHistogram("##iso_value", MyIso -> data[dataInd], MyIso->dataOffe[dataInd].fir, MyIso->dataOffe[dataInd].sec,  "Iso-value", FLT_MAX, FLT_MAX, ImVec2(200, 130));
+        ImGui::End();
+    }
+}
+
 
 int main()
 {
@@ -57,15 +104,14 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    // uncomment this call to draw in wireframe polygons.
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     // build and compile our shader program
     // ------------------------------------
     MyShader = new SHADER("./Shader/MyShader.vert", "./Shader/MyShader.frag");
     MyOBJ = new OBJ();
-    MyCamera = new CAMERA(glm::vec3(127.5f, 127.5f, 300.0f), glm::vec3(127.5f, 127.5f, 127.5f), glm::vec3(0.0f, 1.0f, 0.0f));
-    // uncomment this call to draw in wireframe polygons.
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    MyCamera = new CAMERA(glm::vec3(0, 0, -200), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
     // render loop
     // -----------

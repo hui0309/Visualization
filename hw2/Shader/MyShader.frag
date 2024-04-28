@@ -56,15 +56,16 @@ vec3 WorldToCoord(vec3 P){
 }
 
 bool Outside(vec3 texCoord){
-    if(texCoord.x < 0.0f || texCoord.x > 1.0f) return true;
-    if(texCoord.y < 0.0f || texCoord.y > 1.0f) return true;
-    if(texCoord.z < 0.0f || texCoord.z > 1.0f) return true;
+    if(texCoord.x < -0.5f || texCoord.x > 0.5f) return true;
+    if(texCoord.y < -0.5f || texCoord.y > 0.5f) return true;
+    if(texCoord.z < -0.5f || texCoord.z > 0.5f) return true;
     return false;
 }
 
 void main()
 {
     vec3 raydir = normalize(rayDir);
+    //vec3 raydir = normalize((view[1] - view[0]).xyz);
     float T = 0.0f; //accumulate Opacities
     float rate = 0.1f;
     vec3 P = GLOBAL;

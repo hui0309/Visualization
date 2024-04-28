@@ -13,61 +13,57 @@ void TEX::creVOLE(const vector<vector<vector<float>>>& intensity){
                 // texpos[x][y][z] = new unsigned char[4];
                 glm::vec3 gradient;
 				if(x == 0) gradient.x = intensity[x + 1][y][z] - intensity[x][y][z];
-				else if(x == 256 - 1) gradient.x = intensity[x][y][z] - intensity[x - 1][y][z];
+				else if(x == 255) gradient.x = intensity[x][y][z] - intensity[x - 1][y][z];
 				else gradient.x = (intensity[x + 1][y][z] - intensity[x - 1][y][z]) / 2.0;
 
 				if(y == 0) gradient.y = intensity[x][y + 1][z] - intensity[x][y][z];
-				else if(y == 256 - 1) gradient.y = intensity[x][y][z] - intensity[x][y - 1][z];
+				else if(y == 255) gradient.y = intensity[x][y][z] - intensity[x][y - 1][z];
 				else gradient.y = (intensity[x][y + 1][z] - intensity[x][y - 1][z]) / 2.0;
 
 				if(z == 0) gradient.z = intensity[x][y][z + 1] - intensity[x][y][z];
-				else if(z == 256 - 1) gradient.z = intensity[x][y][z] - intensity[x][y][z - 1];
+				else if(z == 255) gradient.z = intensity[x][y][z] - intensity[x][y][z - 1];
 				else gradient.z = (intensity[x][y][z + 1] - intensity[x][y][z - 1]) / 2.0;
                 
-				gradient = (glm::normalize(gradient) + 1.0f) / 2.0f * 255.0f;
+				if(glm::length(gradient))
+                    gradient = (glm::normalize(gradient) + 1.0f) / 2.0f * 255.0f;
                 texpos[index][0] = gradient.x;
                 texpos[index][1] = gradient.y;
                 texpos[index][2] = gradient.z;
                 texpos[index][3] = intensity[x][y][z];
-                //if(intensity[x][y][z] > 128) cout << intensity[x][y][z] << " ";
                 ++index;
             }
 		}
 	}
     cerr << "Succuss to caculate gradient.\n";
-    
+    glGenTextures(1, &texID[0]);
     glBindTexture(GL_TEXTURE_3D, texID[0]);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, 256, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, texpos);
     cerr << "Succuss to generate TEX3D.\n";
     delete[] texpos;
 }
 void TEX::creTRAN(){
-    // unsigned char **color;
-    // color = new unsigned char*[256];
-    unsigned char (*color)[4] = new unsigned char[256][4];
-    for(int i = 0 ; i < 256; ++i){
-        // color[i] = new unsigned char[4];
-        color[i][0] = i;
+   unsigned char (*color)[4] = new unsigned char[256][4];
+    for(int i=0;i<256;i++){
+        color[i][0] = 0;
         color[i][1] = 128;
         color[i][2] = 255 - i;
-        // color[i][3] = 0.1 * 255;
-        color[i][3] = (255 - i) / 3;
+        color[i][3] = (!i || (i % 60)? 0 : 100 - i / 60 * 2);
     }
+    glGenTextures(1, &texID[1]);
     glBindTexture(GL_TEXTURE_1D, texID[1]);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, color);
     cerr << "Succuss to generate TEX1D.\n";
-    delete[] color;
+
 }
 void TEX::loadTEX(const vector<vector<vector<float>>>& intensity){
-    glGenTextures(2, texID);
     creVOLE(intensity);
     creTRAN();
 }

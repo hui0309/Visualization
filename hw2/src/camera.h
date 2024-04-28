@@ -13,8 +13,9 @@ public:
         return glm::lookAt(pos, view, up);
     }
     glm::mat3 getProjection(const unsigned int& SCR_WIDTH, const unsigned int& SCR_HEIGHT)const{
+        return glm::ortho( -256.0f, 256.0f, -256.0f, 256.0f, 0.001f, 10000.0f);
         //return glm::ortho(-10.0f, 300.0f, -10.0f * (float)SCR_HEIGHT / (float)SCR_WIDTH, 300.0f * (float)SCR_HEIGHT / (float)SCR_WIDTH, 5.0f, 1000.0f);
-        return glm::ortho(0.0f, (float)SCR_WIDTH, (float)SCR_HEIGHT, 0.0f, -1.0f, 1.0f);
+        //return glm::ortho(0.0f, (float)SCR_WIDTH, (float)SCR_HEIGHT, 0.0f, -1.0f, 1.0f);
         //return glm::perspective(glm::radians(zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, zNear, zFar);
     }
     glm::vec3 getPosition()const{

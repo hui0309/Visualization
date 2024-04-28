@@ -13,10 +13,10 @@ struct AABB{
 };
 
 in vec3 GLOBAL;
-in mat4 MODEL;
 in vec3 TEXCOORD;
 
 uniform mat4 view;
+uniform mat4 model;
 uniform sampler3D texture0;
 uniform sampler1D texture1;
 uniform vec3 eyePos;
@@ -65,6 +65,7 @@ bool Outside(vec3 texCoord){
 
 void main()
 {
+    //vec3 raydir = normalize((view[1] - view[0]).xyz);
     vec3 raydir = normalize(rayDir);
     float T = 0.0f; //accumulate Opacities
     float rate = 0.1f;
@@ -77,14 +78,14 @@ void main()
     while(true){   
         texel0 = texture(texture0, texCoord);
         texel1 = texture(texture1, texel0.a);     
-        //vec3 myColor = PhongShade(P, texCoord, texel0, texel1);
-        Color = Color + texel1.rgb * texel1.a * (1 - T);
+        vec3 myColor = PhongShade(P, texCoord, texel0, texel1);
+        Color = Color + myColor * (1 - T);
         T = T + (1 - T) * texel1.a;
         P = P + raydir * rate;
         //texCoord = WorldToCoord(P);
         texCoord = TEXCOORD + (P - GLOBAL) / 255.0f;
         if(Outside(texCoord)) break;
-        if(T > 0.8) break;
+        if(T >= 1.0f) break;
     }
     FragColor = vec4(Color, min(T, 1.0f));
     //FragColor = texel1;

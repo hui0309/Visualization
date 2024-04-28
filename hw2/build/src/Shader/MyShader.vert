@@ -7,12 +7,10 @@ uniform mat4 view;
 uniform mat4 projection;
 
 out vec3 GLOBAL;
-out mat4 MODEL;
 out vec3 TEXCOORD;
 
 void main(){
     GLOBAL = (model * vec4(vertexCor, 1)).xyz;
-    MODEL = model;
     TEXCOORD = textureCor;
     gl_Position = projection * view * model * vec4(vertexCor, 1.0f);
 };
