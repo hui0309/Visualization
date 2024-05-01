@@ -26,7 +26,7 @@ pair<float, float> cmrRot = {0.0f, 0.0f};
 int openChangeWindow = 0;
 int *Color, *ColorR, *ColorG, *ColorB, *ColorA;
 SamPnt *SamR, *SamG, *SamB, *SamA;
-int chooseData = 0;
+int chooseData = 3;
 bool phong = true;
 float offect = 1;
 
@@ -70,15 +70,6 @@ static void glfw_error_callback(int error, const char* description)
 void draw_iso_surface_gui(){
     cmrRot = MyCamera -> getRot();
     MyCamera -> getMode();
-    Color = MyOBJ -> MyTex -> getColor(0); 
-    ColorR = MyOBJ -> MyTex -> getColor(1); 
-    ColorG = MyOBJ -> MyTex -> getColor(2); 
-    ColorB = MyOBJ -> MyTex -> getColor(3); 
-    ColorA = MyOBJ -> MyTex -> getColor(4); 
-    SamR = MyOBJ -> MyTex -> getSamPnt(1);
-    SamG = MyOBJ -> MyTex -> getSamPnt(2);
-    SamB = MyOBJ -> MyTex -> getSamPnt(3);
-    SamA = MyOBJ -> MyTex -> getSamPnt(4);
     chooseData = MyOBJ -> getChoose();
 
     {  
@@ -223,8 +214,17 @@ void myInit(){
     // build and compile our shader program
     // ------------------------------------
     MyShader = new SHADER("./Shader/MyShader.vert", "./Shader/MyShader.frag");
-    MyOBJ = new OBJ();
+    MyOBJ = new OBJ(chooseData);
     MyCamera = new CAMERA(glm::vec3(0, 0, 150), glm::vec3(0, 1, 0));
+    Color = MyOBJ -> MyTex -> getColor(0); 
+    ColorR = MyOBJ -> MyTex -> getColor(1); 
+    ColorG = MyOBJ -> MyTex -> getColor(2); 
+    ColorB = MyOBJ -> MyTex -> getColor(3); 
+    ColorA = MyOBJ -> MyTex -> getColor(4); 
+    SamR = MyOBJ -> MyTex -> getSamPnt(1);
+    SamG = MyOBJ -> MyTex -> getSamPnt(2);
+    SamB = MyOBJ -> MyTex -> getSamPnt(3);
+    SamA = MyOBJ -> MyTex -> getSamPnt(4);
 }
 
 void myDis(GLFWwindow* window){
@@ -336,10 +336,11 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         myDis(window);
-        sleep(0.001);
+        // sleep(0.001);
     }
-    delete MyOBJ;
-    delete MyShader;
+    delete[] MyOBJ;
+    delete[] MyShader;
+    delete[] MyCamera;
     ImGui::DestroyContext();
     ImPlot::DestroyContext();
     // glfw: terminate, clearing all previously allocated GLFW resources.

@@ -9,21 +9,13 @@
 class CAMERA {
 public:
 	CAMERA(const glm::vec3& _pos, const glm::vec3& _up): 
-        pos(_pos), worldUp(_up), zoom(45.0f), zNear(0.1f), zFar(1000.0f), pitch(0.0f), yaw(0.0f){
+        pos(_pos), worldUp(_up), zoom(45.0f), zNear(0.1f), zFar(1000.0f){
         rotMode = 0;
         currentTime = glfwGetTime();
+        update({0.0f, 0.0f}, 0);
     };
     glm::mat3 getView()const{
-        glm::vec3 _front, _right, _up;
-        _front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        _front.y = sin(glm::radians(pitch));
-        _front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        _front = glm::normalize(_front);
-        // also re-calculate the Right and Up vector
-        // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-        _right = glm::normalize(glm::cross(_front, worldUp)); 
-        _up    = glm::normalize(glm::cross(_right, _front));
-        return glm::lookAt(pos, pos + _front, _up);
+        return glm::lookAt(pos, pos + front, up);
     }
     glm::mat3 getProjection(const unsigned int& SCR_WIDTH, const unsigned int& SCR_HEIGHT, const float& offect)const{
         // glm::ortho( left, right, down, up, near, far);
@@ -35,12 +27,7 @@ public:
         return pos;
     }
     glm::vec3 getSeeDir()const{
-        glm::vec3 _front;
-        _front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        _front.y = sin(glm::radians(pitch));
-        _front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        _front = glm::normalize(_front);
-        return _front;
+        return front;
     }
     pair<float, float> getRot()const{
         return {yaw, pitch};
@@ -65,9 +52,17 @@ public:
             pitch = pitch + dr;
             while(pitch >= 89.999) pitch = -89.999 + (pitch - 89.999);
         }
+        front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        front.y = sin(glm::radians(pitch));
+        front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        front = glm::normalize(front);
+        // also re-calculate the Right and Up vector
+        // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+        right = glm::normalize(glm::cross(front, worldUp)); 
+        up    = glm::normalize(glm::cross(right, front));
     }
 private:
-    glm::vec3 pos, worldUp;
+    glm::vec3 pos, worldUp, front, right, up;
     float zoom, zNear, zFar, yaw, pitch;
     float currentTime;
     int rotMode; 

@@ -12,7 +12,7 @@ using namespace std;
 
 class OBJ {
 public:
-	OBJ();
+	OBJ(const int&);
     ~OBJ();
     void loadOBJ(const int&);
     glm::mat4 getModel()const;
@@ -45,5 +45,5 @@ private:
     float *valCnt;
     const vector<string> dataName = {"aneurism", "BluntFin", "Body_SPECT", "bonsai", "Carp", "foot", 
                                     "golfball", "linearaneurism", "mrt16_angio2", "skull", "testing_engine"};
-    GLuint VBOID, VAOID, EBOID;
+    GLuint vboID, vaoID, eboID;
 };

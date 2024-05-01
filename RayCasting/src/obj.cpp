@@ -2,18 +2,18 @@
 #define fir first
 #define sec second
 
-OBJ::OBJ(): pos(0.0f, 0.0f, 0.0f), rot(0.0f, 0.0f, 0.0f), sca(1.0f, 1.0f, 1.0f){
-    glGenVertexArrays(1, &VAOID);
-    glGenBuffers(1, &VBOID);
-    glGenBuffers(1, &EBOID);
+OBJ::OBJ(const int& _choose): pos(0.0f, 0.0f, 0.0f), rot(0.0f, 0.0f, 0.0f), sca(1.0f, 1.0f, 1.0f){
+    glGenVertexArrays(1, &vaoID);
+    glGenBuffers(1, &vboID);
+    glGenBuffers(1, &eboID);
 
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAOID);
+    glBindVertexArray(vaoID);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBOID);
+    glBindBuffer(GL_ARRAY_BUFFER, vboID);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     //vertpos
@@ -34,13 +34,14 @@ OBJ::OBJ(): pos(0.0f, 0.0f, 0.0f), rot(0.0f, 0.0f, 0.0f), sca(1.0f, 1.0f, 1.0f){
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     // glBindVertexArray(0); 
 
-    loadOBJ(0);
+    loadOBJ(_choose);
 }
 OBJ::~OBJ(){
-    glDeleteVertexArrays(1, &VAOID);
-    glDeleteBuffers(1, &VBOID);
-    // glDeleteBuffers(1, &EBOID);
-    delete MyTex;
+    glDeleteVertexArrays(1, &vaoID);
+    glDeleteBuffers(1, &vboID);
+    glDeleteBuffers(1, &eboID);
+    delete[] MyTex;
+    delete[] valCnt;
 }
 void OBJ::loadOBJ(const int& _choose){
     choose = _choose;
@@ -98,7 +99,7 @@ void OBJ::draw()const{
     // default: front, COUNTERCLOCKWISE
     // glCullFace(GL_FRONT);
     // glFrontFace(GL_CCW);
-    glBindVertexArray(VAOID); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+    glBindVertexArray(vaoID); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
     // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     // glDrawArrays(GL_TRIANGLES, 0, 36);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);

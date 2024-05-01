@@ -37,7 +37,7 @@ void TEX::creVOLE(const vector<vector<vector<float>>>& intensity){
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, 256, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, texpos);
     cerr << "Succuss to generate TEX3D.\n";
-    // delete[] texpos;
+    delete[] texpos;
 }
 void TEX::creTRAN(){
     unsigned char (*color)[4] = new unsigned char[256][4];
