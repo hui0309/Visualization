@@ -1,10 +1,3 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h> 
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -13,32 +6,35 @@
 #include <implot_internal.h>
 
 #include "./shader.h"
-// #include "./obj.h"
+#include "./obj.h"
 #include "./camera.h"
-
-#include <bits/stdc++.h>
-using namespace std;
+#include "./tex.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
-// settings
-unsigned int SCR_WIDTH = 1400;
-unsigned int SCR_HEIGHT = 900;
-
+// class
 SHADER *MyShader;
 CAMERA * MyCamera;
-// OBJ *MyOBJ;
+OBJ *MyOBJ;
+TEX *MyTEX;
 
-// float rate = 0.5;
-int cmrMode = 0;
-pair<float, float> cmrRot = {0.0f, 0.0f};
-// int openChangeWindow = 0;
-// int *Color, *ColorR, *ColorG, *ColorB, *ColorA;
-// SamPnt *SamR, *SamG, *SamB, *SamA;
-// int chooseData = 3;
-// bool phong = true;
-float offect = 1;
+// init setting
+glm::vec2 screenSZ = {800, 800};
+float offect = 1; // scale the view SZ
+glm::vec2 imageSZ = {500, 500};
+const char *dataName[] = { "1.vec", "2.vec", "3.vec", "4.vec", "5.vec", "6.vec", "7.vec", "8.vec", "9.vec", "10.vec", "11.vec", "12.vec", "13.vec",
+                            "14.vec", "15.vec", "16.vec", "17.vec", "18.vec", "19.vec", "20.vec", "21.vec", "22.vec", "23.vec",
+                            "rect1.vec", "rect2.vec", "step5_velocity.vec", "test_not_unit.vec", "test_unit.vec" };
+int dataCH = 6;
+float h = 0.1f;
+int filMethod = 1; // box, tent, guass
+int noiseMethod = 0; // white, spot
+unsigned char *color; // tranform function
+unsigned char colorR[256], colorG[256], colorB[256], colorA[256];
+int changeV = 0, _changeV = 0;
+float changeColor[4];
+float blend = 0.5;
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
@@ -55,8 +51,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
-    SCR_HEIGHT = height;
-    SCR_WIDTH = width;
+    screenSZ = {height, width};
 }
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset) {
     offect  = min(1.5f, max(0.1f, (float)(offect - yOffset * 0.01f)));
@@ -78,173 +73,122 @@ static void glfw_error_callback(int error, const char* description)
 }
 
 void draw_iso_surface_gui(){
-    cmrRot = MyCamera -> getRot();
-    MyCamera -> getMode();
-    // chooseData = MyOBJ -> getChoose();
-
-    {  
-        ImGui::SetNextWindowSize(ImVec2(600, 450)); 
+    {
+        ImGui::SetNextWindowSize(ImVec2(580, 620)); 
         ImGui::SetNextWindowBgAlpha(0.5f);
-        ImGui::Begin("Adgust");
+        ImGui::Begin("Adjust");
 
-        ImGui::PushButtonRepeat(true);
-        // if (ImGui::ArrowButton("##left", ImGuiDir_Left))
-        //     chooseData = (chooseData + 11 - 1) % 11;
-        // ImGui::SameLine(); ImGui::Text("%s", (MyOBJ -> getDataName()).c_str()); ImGui::SameLine();
-        // if (ImGui::ArrowButton("##right", ImGuiDir_Right))
-        //     chooseData = (chooseData + 1) % 11;
-        // ImGui::PopButtonRepeat();
+        ImGui::Combo("choose file", &dataCH, dataName, IM_ARRAYSIZE(dataName));
 
-        // ImGui::Text("RayDir Rate:");
-        // ImGui::PushItemWidth(150);
-        // ImGui::SliderFloat("##RayRate", &rate, 0.15f, 0.5f, "%.3f"); ImGui::SameLine();
+        ImGui::NewLine();
+        ImGui::Text("trace Method");
+        ImGui::PushItemWidth(150);
+        ImGui::Text("image size:"); ImGui::SameLine();
+        ImGui::SliderFloat("##imageSZ", &imageSZ.x, 100.0f, 800.0f, "%.0f"); ImGui::SameLine();
+        ImGui::Text("h:"); ImGui::SameLine();
+        ImGui::SliderFloat("##H", &h, 0.001f, 1.0f, "%.3f");
 
-        // ImGui::Checkbox("use Phong Shader:", &phong);
+        ImGui::NewLine();
+        ImGui::Text("noise method");
+        ImGui::RadioButton("white", &noiseMethod, 0); ImGui::SameLine();
+        ImGui::RadioButton("spot", &noiseMethod, 1); ImGui::SameLine();
+        ImGui::NewLine();
 
-        ImGui::Text("Automatic Rotate Camera:");
-        ImGui::RadioButton("XZ-plane", &cmrMode, 1); ImGui::SameLine();
-        ImGui::RadioButton("Y-axis", &cmrMode, 2); ImGui::SameLine();
-        ImGui::RadioButton("close", &cmrMode, 0);
+        ImGui::NewLine();
+        ImGui::Text("filter method");
+        ImGui::RadioButton("box", &filMethod, 0); ImGui::SameLine();
+        ImGui::RadioButton("tent", &filMethod, 1); ImGui::SameLine();
+        ImGui::RadioButton("gauss", &filMethod, 2); ImGui::SameLine();
 
-        ImGui::Text("Rotate Camera:");
-        if(cmrMode == 0){
-            ImGui::Text("XZ-plane:");    ImGui::SameLine();
-            ImGui::PushItemWidth(150);
-            ImGui::SliderFloat("##cmrRot_XZ", &cmrRot.fir, 0.0f, 359.999f, "%.3f"); ImGui::SameLine();
-            ImGui::Text("Y-axis:");    ImGui::SameLine();
-            ImGui::PushItemWidth(100);
-            ImGui::SliderFloat("##cmrRot_Y", &cmrRot.sec, -89.999f, 89.999f, "%.3f");
-        }
-        else{
-            ImGui::Text("XZ-plane:");    ImGui::SameLine();
-            ImGui::PushItemWidth(150);
-            ImGui::SliderFloat("##cmrRot_XZ", &cmrRot.fir, 0.0f, 359.999f, "%.3f", ImGuiSliderFlags_NoInput); ImGui::SameLine();
-            ImGui::Text("Y-axis:");    ImGui::SameLine();
-            ImGui::PushItemWidth(100);
-            ImGui::SliderFloat("##cmrRot_Y", &cmrRot.sec, -89.999f, 89.999f, "%.3f", ImGuiSliderFlags_NoInput);
-        }
-        static bool show_lines = true;
-        static bool show_fills = true;
-        static float fill_ref = 0;
-        static int shade_mode = 0;
+        ImGui::NewLine();
+        ImGui::PushItemWidth(150);
+        ImGui::Text("blend noise and color(it's a color rate)"); ImGui::SameLine();
+        ImGui::SliderFloat("##blend", &blend, 0.0f, 1.0f, "%.3f");
+
+        ImGui::NewLine();
         static ImPlotShadedFlags flags = 0;
+        unsigned char INUM[256];
+        for(int i = 0; i < 256; ++i) INUM[i] = i;
 
-        // ImGui::SetNextWindowSize(ImVec2(200, 300)); // 设置图形的大小
-        ImPlot::BeginPlot("Color Map", ImVec2(280, 200));
-        ImPlot::SetupAxes("Intensity","Value");
-        ImPlot::SetupAxesLimits(0, 255, 0, 255);
-        ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.25f);
-        // ImPlot::PlotShaded("ColorR", Color, ColorR, 256, 0, flags); 
-        // ImPlot::PlotShaded("ColorG", Color, ColorG, 256, 0, flags);
-        // ImPlot::PlotShaded("ColorB", Color, ColorB, 256, 0, flags);
-        // ImPlot::PlotShaded("ColorA", Color, ColorA, 256, 0, flags);
-        ImPlot::PopStyleVar();
-        ImPlot::EndPlot();  ImGui::SameLine();
-        
-        // ImGui::PlotHistogram("##iso_value", MyOBJ -> getCnt(), 256, 0,  "Intensity_Count", FLT_MAX, FLT_MAX, ImVec2(250, 200));
+        // Ensure SetupAxis and other setup functions are called before any PlotX functions
+        if (ImPlot::BeginPlot("Color Map", ImVec2(300, 350))) {
+            ImPlot::SetupAxes("Intensity", "Value");
+            ImPlot::SetupAxesLimits(0, 255, 0, 255);
+            ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.25f);
+            ImPlot::PlotShaded("ColorR", INUM, colorR, 256, 0, flags); 
+            ImPlot::PlotShaded("ColorG", INUM, colorG, 256, 0, flags);
+            ImPlot::PlotShaded("ColorB", INUM, colorB, 256, 0, flags);
+            ImPlot::PlotShaded("ColorA", INUM, colorA, 256, 0, flags);
+            ImPlot::PopStyleVar();
+            ImPlot::EndPlot();
+        } 
+        ImGui::SameLine();
 
-        ImGui::Text("Adjust Color Map:");
-        // if (ImGui::Button("Change Color R")) openChangeWindow |= (1 << 0); ImGui::SameLine();
-        // if (ImGui::Button("Change Color G")) openChangeWindow |= (1 << 1); ImGui::SameLine();
-        // if (ImGui::Button("Change Color B")) openChangeWindow |= (1 << 2); ImGui::SameLine();
-        // if (ImGui::Button("Change Color A")) openChangeWindow |= (1 << 3);
+        {
+            ImGui::BeginGroup();
+            ImGui::PlotHistogram("##speedCnt", MyTEX -> speedCnt, 256, 0,  "speedCnt", FLT_MAX, FLT_MAX, ImVec2(260, 250)); 
+            ImGui::NewLine();
+            ImGui::Text("Change color with V : ");
+            ImGui::DragInt("changeColor", &_changeV, 1, 0, 255, "%d");
+            ImGui::ColorEdit4("", changeColor);
+            ImGui::EndGroup();
+        }
         ImGui::End();
     }
-    // if(openChangeWindow >> 0 & 1){
-    //     ImGui::SetNextWindowSize(ImVec2(400, 200)); 
-    //     ImGui::SetNextWindowBgAlpha(0.5f);
-    //     ImGui::Begin("Adgust ColorR");
-    //     if(ImGui::Button("Close")) openChangeWindow ^= (1 << 0);
-    //     for(int i = 0; i < 6; ++i){
-    //         ImGui::Text("X = "); ImGui::SameLine();
-    //         ImGui::PushItemWidth(100);
-    //         ImGui::SliderFloat(("##SamR_X_" + to_string(i)).c_str(), &(SamR -> X[i]), 0, 255); ImGui::SameLine();
-    //         ImGui::Text("Y = "); ImGui::SameLine();
-    //         ImGui::PushItemWidth(200);
-    //         ImGui::SliderFloat(("##SamR_Y_" + to_string(i)).c_str(), &(SamR -> Y[i]), 0, 255);
-    //     }
-    //     ImGui::End();
-    // }
-    // if(openChangeWindow >> 1 & 1){
-    //     ImGui::SetNextWindowSize(ImVec2(400, 200)); 
-    //     ImGui::SetNextWindowBgAlpha(0.5f);
-    //     ImGui::Begin("Adgust ColorG");
-    //     if(ImGui::Button("Close")) openChangeWindow ^= (1 << 1);
-    //     for(int i = 0; i < 6; ++i){
-    //         ImGui::Text("X = "); ImGui::SameLine();
-    //         ImGui::PushItemWidth(100);
-    //         ImGui::SliderFloat(("##SamG_X_" + to_string(i)).c_str(), &(SamG -> X[i]), 0, 255); ImGui::SameLine();
-    //         ImGui::Text("Y = "); ImGui::SameLine();
-    //         ImGui::PushItemWidth(200);
-    //         ImGui::SliderFloat(("##SamG_Y_" + to_string(i)).c_str(), &(SamG -> Y[i]), 0, 255);
-    //     }
-    //     ImGui::End();
-    // }
-    // if(openChangeWindow >> 2 & 1){
-    //     ImGui::SetNextWindowSize(ImVec2(400, 200)); 
-    //     ImGui::SetNextWindowBgAlpha(0.5f);
-    //     ImGui::Begin("Adgust ColorB");
-    //     if(ImGui::Button("Close")) openChangeWindow ^= (1 << 2);
-    //     for(int i = 0; i < 6; ++i){
-    //         ImGui::Text("X = "); ImGui::SameLine();
-    //         ImGui::PushItemWidth(100);
-    //         ImGui::SliderFloat(("##SamB_X_" + to_string(i)).c_str(), &(SamB -> X[i]), 0, 255); ImGui::SameLine();
-    //         ImGui::Text("Y = "); ImGui::SameLine();
-    //         ImGui::PushItemWidth(200);
-    //         ImGui::SliderFloat(("##SamB_Y_" + to_string(i)).c_str(), &(SamB -> Y[i]), 0, 255);
-    //     }
-    //     ImGui::End();
-    // }
-    // if(openChangeWindow >> 3 & 1){
-    //     ImGui::SetNextWindowSize(ImVec2(400, 200)); 
-    //     ImGui::SetNextWindowBgAlpha(0.5f);
-    //     ImGui::Begin("Adgust ColorA");
-    //     if(ImGui::Button("Close")) openChangeWindow ^= (1 << 3);
-    //     for(int i = 0; i < 6; ++i){
-    //         ImGui::Text("X = "); ImGui::SameLine();
-    //         ImGui::PushItemWidth(100);
-    //         ImGui::SliderFloat(("##SamA_X_" + to_string(i)).c_str(), &(SamA -> X[i]), 0, 255); ImGui::SameLine();
-    //         ImGui::Text("Y = "); ImGui::SameLine();
-    //         ImGui::PushItemWidth(200);
-    //         ImGui::SliderFloat(("##SamA_Y_" + to_string(i)).c_str(), &(SamA -> Y[i]), 0, 128);
-    //     }
-    //     ImGui::End();
-    // }
 }
+
 void myInit(){
-    //  configure global opengl state
-    glEnable(GL_DEPTH_TEST);
+    // configure global opengl state
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // uncomment this call to draw in wireframe polygons.
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    // glEnable(GL_CULL_FACE);
-
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    // default
+    color = new unsigned char[256 * 4];
+    for(int i = 0; i < 256; ++i){
+        if(i < 65)  colorG[i] = color[i * 4 + 0] = 0.0f;
+        else colorR[i] = color[i * 4 + 0] = min(max(128 + 43 * 3 * cosf(((i + 65) * 2.0f * M_PI) / 256.0f), 0.0f), 255.0f);
+        colorG[i] = color[i * 4 + 1] = min(max(128 + 43 * 3 * cosf(((i + 129) * 2.0f * M_PI) / 256.0f), 0.0f), 255.0f);
+        if(i > 193)  colorB[i] = color[i * 4 + 2] = 0.0f;
+        else colorB[i] = color[i * 4 + 2] = min(max(128 + 43 * 3 * cosf(((i + 193) * 2.0f * M_PI) / 256.0f), 0.0f), 255.0f);
+        colorA[i] = color[i * 4 + 3] = (i? 127 : 0);
+    }
+    changeColor[0] = colorR[changeV] / 255.0f;
+    changeColor[1] = colorG[changeV] / 255.0f;
+    changeColor[2] = colorB[changeV] / 255.0f;
+    changeColor[3] = colorA[changeV] / 255.0f;
     // build and compile our shader program
     MyShader = new SHADER("./Shader/MyShader.vert", "./Shader/MyShader.frag");
-    // MyOBJ = new OBJ(chooseData);
-    MyCamera = new CAMERA(glm::vec3(0, 0, 150), glm::vec3(0, 1, 0));
-    // Color = MyOBJ -> MyTex -> getColor(0); 
-    // ColorR = MyOBJ -> MyTex -> getColor(1); 
-    // ColorG = MyOBJ -> MyTex -> getColor(2); 
-    // ColorB = MyOBJ -> MyTex -> getColor(3); 
-    // ColorA = MyOBJ -> MyTex -> getColor(4); 
-    // SamR = MyOBJ -> MyTex -> getSamPnt(1);
-    // SamG = MyOBJ -> MyTex -> getSamPnt(2);
-    // SamB = MyOBJ -> MyTex -> getSamPnt(3);
-    // SamA = MyOBJ -> MyTex -> getSamPnt(4);
+    MyOBJ = new OBJ();
+    MyCamera = new CAMERA(glm::vec3(0, 0, 1.0f), glm::vec3(0, 1, 0));
+    MyTEX = new TEX(dataName[dataCH], imageSZ, h, noiseMethod, filMethod, color);
+    // MyOBJ -> MyTex -> creTRAN(color);
 }
 
 void myDis(GLFWwindow* window){
+    if(changeV != _changeV){
+        changeV = _changeV;
+        changeColor[0] = colorR[changeV] / 255.0f;
+        changeColor[1] = colorG[changeV] / 255.0f;
+        changeColor[2] = colorB[changeV] / 255.0f;
+        changeColor[3] = colorA[changeV] / 255.0f;
+    }
+    colorR[changeV] = changeColor[0] * 255;
+    colorG[changeV] = changeColor[1] * 255;
+    colorB[changeV] = changeColor[2] * 255;
+    colorA[changeV] = changeColor[3] * 255;
+    for(int i = 0; i < 256; ++i){
+        color[i * 4 + 0] = colorR[i];
+        color[i * 4 + 1] = colorG[i];
+        color[i * 4 + 2] = colorB[i];
+        color[i * 4 + 3] = colorA[i];
+    }
+    imageSZ.y = imageSZ.x; imageSZ = glm::floor(imageSZ);
+    MyTEX -> update(dataName[dataCH], imageSZ, h, noiseMethod, filMethod, color);
     // Start the Dear ImGui frame
-    // ImGui_ImplOpenGL3_NewFrame();
-    // ImGui_ImplGlfw_NewFrame();
-    // ImGui::NewFrame();
-    // draw_iso_surface_gui();
-
-    MyCamera -> update(cmrRot, cmrMode);
-    // if(openChangeWindow) MyOBJ -> MyTex -> creTRAN();
-    // if(chooseData != MyOBJ -> getChoose()) MyOBJ -> loadOBJ(chooseData);
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    draw_iso_surface_gui();
 
     // input
     // -----
@@ -257,31 +201,21 @@ void myDis(GLFWwindow* window){
 
     MyShader -> use();
 
-    //light setting
-    // MyShader -> setVec3("Light.direction", -0.2f, -1.0f, 0.3f);
-    // MyShader -> setVec3("Light.ambient", 0.5f, 0.5f, 0.5f);
-    // MyShader -> setVec3("Light.diffuse", 0.5f, 0.5f, 0.5f);
-    // MyShader -> setVec3("Light.specular", 1.0f, 1.0f, 1.0f);
-    // MyShader -> setVec3("eyePos", MyCamera -> getPosition());
-    // MyShader -> setVec3("rayDir", MyCamera -> getSeeDir());
+    // get shader data
+    MyShader -> setMat4("projection", MyCamera -> getProjection(screenSZ, offect));
+    MyShader -> setMat4("view", MyCamera -> getView());
+    MyShader -> setMat4("model", MyOBJ -> getModel());
+    MyShader -> setInt("texture0", 0);  
+    MyShader -> setInt("texture1", 1);
+    MyShader -> setInt("texture2", 2);
+    MyShader -> setFloat("blend", blend);
 
-    //create transformations
-    // MyShader -> setMat4("projection", MyCamera -> getProjection(SCR_WIDTH, SCR_HEIGHT, offect));
-    // MyShader -> setMat4("view", MyCamera -> getView());
-    // MyShader -> setMat4("model", MyOBJ -> getModel());
+    MyTEX -> use();
 
-    // MyShader -> setInt("texture0", 0);  
-    // MyShader -> setInt("texture1", 1);
+    MyOBJ -> draw();
 
-    // MyShader -> setFloat("rate", rate);
-    // MyShader -> setBool("phong", phong);
-
-    glEnable(GL_DEPTH_TEST);
-    // MyOBJ -> draw();
-    glDisable(GL_DEPTH_TEST);
-
-    // ImGui::Render();
-    // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());  
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());  
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     // -------------------------------------------------------------------------------
@@ -305,10 +239,10 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screenSZ.y, screenSZ.x, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
@@ -320,26 +254,26 @@ int main()
     // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        cout << "Failed to initialize GLAD\n";
+        cerr << "Failed to initialize GLAD\n";
         return -1;
     }
 
     myInit();
 
     // Setup Dear ImGui context
-    // IMGUI_CHECKVERSION();
-    // ImGui::CreateContext();
-    // ImPlot::CreateContext();
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImPlot::CreateContext();
 
-    // ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
     // // Enable Keyboard Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;   
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;   
     // // Enable Gamepad Controls 
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      
 
     // // Setup Platform/Renderer backends
-    // ImGui_ImplGlfw_InitForOpenGL(window, true);
-    // ImGui_ImplOpenGL3_Init("#version 130");
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 130");
    
 
     // render loop
@@ -349,11 +283,12 @@ int main()
         myDis(window);
         // sleep(0.001);
     }
-    // delete[] MyOBJ;
+    delete[] MyOBJ;
+    delete[] MyTEX;
     delete[] MyShader;
     delete[] MyCamera;
-    // ImGui::DestroyContext();
-    // ImPlot::DestroyContext();
+    ImGui::DestroyContext();
+    ImPlot::DestroyContext();
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();

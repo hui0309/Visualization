@@ -7,6 +7,18 @@
 },
 {
   "directory": "/home/hui0309/Desktop/code/Visualization/hw3/build",
+  "command": "/usr/bin/g++ -I/home/hui0309/Desktop/code/Visualization/hw3/extern/glfw/include -I/home/hui0309/Desktop/code/Visualization/hw3/extern/glm -I/home/hui0309/Desktop/code/Visualization/hw3/extern/glad/include -I/home/hui0309/Desktop/code/Visualization/hw3/extern/imgui/include -g -o src/CMakeFiles/Visualization.dir/obj.cpp.o -c /home/hui0309/Desktop/code/Visualization/hw3/src/obj.cpp",
+  "file": "/home/hui0309/Desktop/code/Visualization/hw3/src/obj.cpp",
+  "output": "src/CMakeFiles/Visualization.dir/obj.cpp.o"
+},
+{
+  "directory": "/home/hui0309/Desktop/code/Visualization/hw3/build",
+  "command": "/usr/bin/g++ -I/home/hui0309/Desktop/code/Visualization/hw3/extern/glfw/include -I/home/hui0309/Desktop/code/Visualization/hw3/extern/glm -I/home/hui0309/Desktop/code/Visualization/hw3/extern/glad/include -I/home/hui0309/Desktop/code/Visualization/hw3/extern/imgui/include -g -o src/CMakeFiles/Visualization.dir/tex.cpp.o -c /home/hui0309/Desktop/code/Visualization/hw3/src/tex.cpp",
+  "file": "/home/hui0309/Desktop/code/Visualization/hw3/src/tex.cpp",
+  "output": "src/CMakeFiles/Visualization.dir/tex.cpp.o"
+},
+{
+  "directory": "/home/hui0309/Desktop/code/Visualization/hw3/build",
   "command": "/usr/bin/gcc -DHAVE_MEMFD_CREATE -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I/home/hui0309/Desktop/code/Visualization/hw3/extern/glfw/include -I/home/hui0309/Desktop/code/Visualization/hw3/extern/glfw/src -I/home/hui0309/Desktop/code/Visualization/hw3/build/extern/glfw/src -g -std=c99 -fPIC -Wall -o extern/glfw/src/CMakeFiles/glfw.dir/context.c.o -c /home/hui0309/Desktop/code/Visualization/hw3/extern/glfw/src/context.c",
   "file": "/home/hui0309/Desktop/code/Visualization/hw3/extern/glfw/src/context.c",
   "output": "extern/glfw/src/CMakeFiles/glfw.dir/context.c.o"

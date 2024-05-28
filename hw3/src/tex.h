@@ -6,26 +6,31 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-struct SamPnt{
-    float *X, *Y;
-    SamPnt(){
-        X = new float[6];
-        Y = new float[6];
-    }
-};
 class TEX {
 public:
-    TEX(vector<vector<vector<float>>>&);
+    TEX(const string&, const glm::vec2&, const float&, const int&, const int&, unsigned char*);
     ~TEX();
-    void creVOLE(const vector<vector<vector<float>>>&);
-    void creTRAN();
-    int* getColor(const int& choose); 
-    SamPnt* getSamPnt(const int& choose); 
+    void loadGrid(const string&);
+    void creFlow(const glm::vec2&, const float&);
+    void creNoise(const int&);
+    void loadFlow(const int&);
+    void creTRAN(const unsigned char*);
+    void update(const string&, const glm::vec2&, const float&, const int&, const int&, unsigned char*);
     void use()const;
+    float *speedCnt = NULL;
 private:
-    GLuint texID[2];
-    int* newColor(vector<pair<float, float>>&);
-    SamPnt *SamR, *SamG, *SamB, *SamA;
-    int *ColorR, *ColorG, *ColorB, *ColorA, *Color; 
-
+    glm::vec2 interpolate(const glm::vec2&, const glm::vec2&)const;
+    void filter2D(unsigned char* , const glm::vec2&);
+    void filter1D(float*, const int&);
+    int noiseMethod, filMethod;  // white, spot | box, tent, gausi
+    vector<vector<pair<glm::vec2, float>>> flow; // streamline
+    vector<vector<glm::vec2>> gridData; // raw data
+    unsigned char *noise = NULL; // raw noise texture
+    glm::vec2 texSZ, gridSZ; // texture size | raw data size 
+    glm::vec2 flowRange; // raw data V range
+	string dataName; // dataName with raw data
+    GLuint texID[3]; // tecture ID
+    int minFlowCNT; // len with texture size per 1 trace pnt
+    int filSZ; // filter size
+    float h; // delta 
 };

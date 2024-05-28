@@ -1,7 +1,12 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include<glm/glm.hpp>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h> 
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include<bits/stdc++.h>
 
 class SHADER
