@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "fstream": "cpp",
+        "iosfwd": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp",
+        "limits": "cpp",
+        "random": "cpp",
+        "tuple": "cpp",
+        "iostream": "cpp"
+    }
+}
